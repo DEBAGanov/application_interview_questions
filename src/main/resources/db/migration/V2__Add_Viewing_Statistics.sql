@@ -1,0 +1,3 @@
+ALTER TABLE questions
+ADD COLUMN viewed_count INTEGER DEFAULT 0,
+ADD COLUMN last_viewed TIMESTAMP; 

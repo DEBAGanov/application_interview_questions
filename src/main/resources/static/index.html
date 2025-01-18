@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Загрузка вопросов</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .upload-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .file-input {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .submit-button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .submit-button:hover {
+            background-color: #0056b3;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .questions-list {
+            margin-top: 20px;
+        }
+        .question-item {
+            background-color: #fff;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        .markdown-content {
+            line-height: 1.6;
+        }
+        .markdown-content ul {
+            padding-left: 20px;
+        }
+        .markdown-content code {
+            background-color: #f8f9fa;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        .markdown-content p {
+            margin: 0.5em 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Загрузка файла с вопросами</h1>
+        <div class="upload-form">
+            <input type="file" id="fileInput" class="file-input" accept=".md">
+            <button onclick="uploadFile()" class="submit-button">Загрузить</button>
+        </div>
+        <div id="status" class="status" style="display: none;"></div>
+        
+        <h2>Список вопросов</h2>
+        <div id="questionsList" class="questions-list"></div>
+    </div>
+
+    <script>
+        marked.setOptions({
+            breaks: true,
+            gfm: true
+        });
+
+        async function uploadFile() {
+            const fileInput = document.getElementById('fileInput');
+            const statusDiv = document.getElementById('status');
+            
+            if (!fileInput.files.length) {
+                showStatus('Пожалуйста, выберите файл', 'error');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            try {
+                const response = await fetch('/api/parse', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.text();
+                
+                if (response.ok) {
+                    showStatus(result, 'success');
+                    loadQuestions();
+                } else {
+                    showStatus(result, 'error');
+                }
+            } catch (error) {
+                showStatus('Ошибка при загрузке файла: ' + error, 'error');
+            }
+        }
+
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = message;
+            statusDiv.className = 'status ' + type;
+            statusDiv.style.display = 'block';
+        }
+
+        async function loadQuestions() {
+            try {
+                const response = await fetch('/api/questions');
+                const questions = await response.json();
+                
+                const questionsList = document.getElementById('questionsList');
+                questionsList.innerHTML = questions.map(q => `
+                    <div class="question-item">
+                        <h3>${q.question}</h3>
+                        <div class="markdown-content">
+                            ${marked.parse(q.answer)}
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                showStatus('Ошибка при загрузке вопросов: ' + error, 'error');
+            }
+        }
+
+        // Загружаем вопросы при загрузке страницы
+        loadQuestions();
+    </script>
+</body>
+</html> 
