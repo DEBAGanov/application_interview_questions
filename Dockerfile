@@ -17,8 +17,11 @@ RUN npm run build
 FROM amazoncorretto:17-alpine
 WORKDIR /app
 
-# Install nginx
-RUN apk add --no-cache nginx
+# Install nginx and curl for healthchecks
+RUN apk add --no-cache nginx curl
+
+# Create necessary directories
+RUN mkdir -p /run/nginx /var/log/nginx
 
 # Copy backend
 COPY --from=backend-build /app/target/*.jar app.jar
@@ -31,7 +34,14 @@ COPY src/js/nginx.conf /etc/nginx/http.d/default.conf
 COPY start-services.sh /app/
 RUN chmod +x /app/start-services.sh
 
+# Set environment variables
+ENV SPRING_PROFILES_ACTIVE=prod
+ENV SERVER_PORT=8080
+
 EXPOSE 80
 EXPOSE 8080
+
+HEALTHCHECK --interval=30s --timeout=3s \
+    CMD curl -f http://localhost/api/actuator/health || exit 1
 
 CMD ["/app/start-services.sh"] 

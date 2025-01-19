@@ -3,11 +3,15 @@ image:
   dockerfile: Dockerfile
 env:
   - name: SPRING_DATASOURCE_URL
-    value: jdbc:postgresql://postgres:5432/postgres
+    value: jdbc:postgresql://212.60.20.111:5432/postgres
   - name: SPRING_DATASOURCE_USERNAME
     value: postgres
   - name: SPRING_DATASOURCE_PASSWORD
     value: password
+  - name: SERVER_PORT
+    value: "8080"
+  - name: SPRING_PROFILES_ACTIVE
+    value: "prod"
 ports:
   - port: 80
     type: http
