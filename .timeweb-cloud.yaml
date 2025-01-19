@@ -1,0 +1,19 @@
+name: interview-questions
+image: 
+  dockerfile: Dockerfile
+env:
+  - name: SPRING_DATASOURCE_URL
+    value: jdbc:postgresql://postgres:5432/postgres
+  - name: SPRING_DATASOURCE_USERNAME
+    value: postgres
+  - name: SPRING_DATASOURCE_PASSWORD
+    value: password
+ports:
+  - port: 80
+    type: http
+  - port: 8080
+    type: http
+resources:
+  limits:
+    cpu: 1
+    memory: 1Gi 

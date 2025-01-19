@@ -31,3 +31,13 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Node
+node_modules/
+
+# Logs
+*.log
+
+# Environment
+.env
+.env.local
